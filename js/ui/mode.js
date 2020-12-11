@@ -62,6 +62,9 @@ const invertDarkModeObj = {
   light: "dark",
 };
 
+/**
+ * get target mode
+ */
 const toggleCustomDarkMode = () => {
   let currentSetting = getLS(darkModeStorageKey);
 
@@ -73,18 +76,20 @@ const toggleCustomDarkMode = () => {
     return;
   }
   setLS(darkModeStorageKey, currentSetting);
-
   return currentSetting;
 };
 
-applyCustomDarkModeSettings();
-
+/**
+ * bind click event for toggle button
+ */
 function bindToggleButton() {
-  document.getElementById("toggle-mode-btn").addEventListener("click", () => {
-    const mode = toggleCustomDarkMode();
-    applyCustomDarkModeSettings(mode);
-    toggleCodeblockCss(mode);
-  });
+  if (window["toggle-mode-btn"]) {
+    window["toggle-mode-btn"].addEventListener("click", () => {
+      const mode = toggleCustomDarkMode();
+      applyCustomDarkModeSettings(mode);
+      toggleCodeblockCss(mode);
+    });
+  }
 }
 
 /**
@@ -93,11 +98,31 @@ function bindToggleButton() {
  */
 function toggleCodeblockCss(mode) {
   const invertMode = invertDarkModeObj[mode];
-  document
-    .getElementById(`${invertMode}-prism-css`)
-    .setAttribute("media", "(prefers-color-scheme: no-preference)");
-  document.getElementById(`${mode}-prism-css`).removeAttribute("media");
+  const invertModePrismCss = document.getElementById(`${invertMode}-prism-css`);
+  if (invertModePrismCss) {
+    invertModePrismCss.setAttribute(
+      "media",
+      "(prefers-color-scheme: no-preference)"
+    );
+    document.getElementById(`${mode}-prism-css`).removeAttribute("media");
+  }
 }
 
+applyCustomDarkModeSettings();
 document.addEventListener("DOMContentLoaded", bindToggleButton);
 document.addEventListener("pjax:success", bindToggleButton);
+
+// judge by time
+if (CONFIG.mode === "time") {
+  const now = new Date();
+  const hour = now.getHours();
+  if (hour < 7 && hour >= 19) {
+    setTimeout(() => {
+      toggleCodeblockCss("dark");
+    }, 200);
+    const mode = toggleCustomDarkMode();
+    if (mode === "dark") {
+      applyCustomDarkModeSettings(mode);
+    }
+  }
+}
