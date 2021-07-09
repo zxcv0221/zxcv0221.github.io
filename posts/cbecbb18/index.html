@@ -63,8 +63,8 @@
 <li><a target="_blank" rel="noopener" href="https://github.com/AonCyberLabs/Windows-Exploit-Suggester">添加链接描述</a>进程结束、用户管理命令</li>
 </ul>
 <p>1.使用<code>taskkill</code>来结束进程。<code>taskkill /?</code>获取帮助信息。<br>2.在windows系统下，系统访问需要有对应的用户和密码。<br>可以通过以下命令添加用户</p>
-<pre class="language-shell" data-language="shell"><code class="language-shell">net user username password &#x2F;add
-net localgroup administrator username &#x2F;add</code></pre>
+<pre class="language-shell" data-language="shell"><code class="language-shell">net user username password /add
+net localgroup administrator username /add</code></pre>
 <h1 id="windows提权辅助工具"><a href="#windows提权辅助工具" class="headerlink" title="windows提权辅助工具"></a>windows提权辅助工具</h1><h2 id="辅助工具介绍"><a href="#辅助工具介绍" class="headerlink" title="辅助工具介绍"></a>辅助工具介绍</h2><p>Windows-Exploit-Suggester此工具将目标补丁与Microsoft漏洞数据库进行比较，以检测目标上潜在的缺失补丁。<br>github项目地址——🔑<a target="_blank" rel="noopener" href="https://github.com/AonCyberLabs/Windows-Exploit-Suggester">传送门</a><br>安装环境：python2.7、安装xlrd模块</p>
 <pre class="language-python" data-language="python"><code class="language-python"><span class="token comment">#只有一个python2的环境</span>
 python <span class="token operator">-</span>m pip install xlrd
