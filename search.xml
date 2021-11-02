@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>【应急响应篇】——流量分析练习(一)</title>
+      <link href="/posts/32276993/"/>
+      <url>/posts/32276993/</url>
+      
+        <content type="html"><![CDATA[<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211102134515.jpeg" loading="lazy"><br>一个人如果只遵照他的内心去活着，他要么成为一个疯子，要么成为一个传奇。</p><a id="more"></a><h2 id="0x01-问题"><a href="#0x01-问题" class="headerlink" title="0x01 问题"></a>0x01 问题</h2><p>第 1 级问题：</p><ol><li><p>被感染的 Windows 虚拟机的 IP 地址是多少？</p></li><li><p>被感染的 Windows 虚拟机的主机名是什么？</p></li><li><p>受感染虚拟机的 MAC 地址是多少？</p></li><li><p>受感染网站的 IP 地址是什么？</p></li><li><p>被入侵网站的域名是什么？</p></li><li><p>提供漏洞利用工具包和恶意软件的 IP 地址和域名是什么？</p></li></ol><p>第 2 级问题：</p><ol><li><p>指向漏洞利用工具包 (EK. 登陆页面的重定向 URL 是什么？</p></li><li><p>除了登陆页面（其中包含 CVE-2013-2551 IE 漏洞），EK 还发送了哪些其他漏洞？</p></li></ol><h2 id="分析数据包"><a href="#分析数据包" class="headerlink" title="分析数据包"></a>分析数据包</h2><ol><li>寻找被感染的Windows虚拟机的IP地址，直接看包序号1-10，前面几个已经可以看出来，(虚拟机地址一般是内网的，172开头，192开头等)<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102141428.png" loading="lazy"><br>所以第一题答案是<code>172.16.165.165</code></li><li>找主机名，可以直接搜索<code>Hosst Name</code>这样是使用CTRL+F直接查找字符串的方法。<br>还有就是过滤器筛选<code>dhcp</code><br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102142310.png" loading="lazy"><br>主机名是<code>K34EN6W3N-PC</code><br>精准定位<code>HostName</code>，过滤器输入<code>dhcp.option.hostname</code><br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102142440.png" loading="lazy"></li><li>找Mac地址，精确查找<code>dhcp.hw.mac_addr</code><br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102153419.png" loading="lazy"><br>所以答案为：<code>f0:19:af:02:9b:f1</code></li><li>如果需要查找受感染网站的IP地址，只需看HTTP的数据包即可，因为黑客攻击网站首先是可以访问的，而且攻击过程中一定会多次进行访问（不正常次数），所以使用过滤器先对HTTP的数据包进行过滤，然后再进行查看。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102154214.png" loading="lazy"><br>看到了<code>172.16.165.165</code>对<code>82.150.140.30</code>进行了大量的访问，产生了很多访问记录，同时看后面，该IP地址也回应了许多状态码为200的数据包。所以可以确定了这个收感染的IP地址为<code>82.150.140.30</code></li><li>随意找个172对82发出请求的HTTP数据包，跟踪数据流即可看到Host。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102154746.png" loading="lazy"><br>网站域名为：<code>www.ciniholland.nl</code></li><li>提供漏洞利用工具包和软件的IP地址和域名，找这个信息，需要先捋清楚一点，就是工具包是联网从网络上下载下来的，就是HTTP数据包，下载记录，在接受的时候文件会隐藏在数据包中。所以直接导出HTTP对象查看。<br>然后使用杀软来扫描<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102155643.png" loading="lazy"><br>发现了病毒木马，直接定位相应数据包进行查看。<br>然后问题的答案也都揭晓了。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102155918.png" loading="lazy"><br>IP地址: <code>37.200.69.143</code>，域名: <code>http://stand.trustandprobaterealty.com</code><br>同时可以看到，传输过来的数据，也就是从网站上下载的数据内容是个压缩包。</li><li>指向漏洞利用工具包 (EK) 登陆页面的重定向 URL 是什么？<br>登录页面的重定向URL，已经找到了漏洞下载那边url和IP地址（上一题），所以就找它前面的数据包，正常逻辑（先登录在下载内容）<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102182654.png" loading="lazy"><br>可以看到在<code>37.200.69.143</code>前面有一个陌生的IP地址，这个就是登陆前的重定向IP地址。查看与这个IP地址交互的数据包中的url。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102183602.png" loading="lazy"><br>答案：<a href="http://24corp-shop.com/">http://24corp-shop.com/</a></li><li>除了登陆页面（其中包含 CVE-2013-2551 IE 漏洞），EK 还发送了哪些其他漏洞？<br>在HTTP导出的对象中，看到相关内容。<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102183844.png" loading="lazy"><br>导出后，将相应文件改后缀名，swf文件或者jar文件。等重命名一下（改后缀）上传至微步沙箱即可查看相应的CVE编号<br><img src="https://gitee.com/m0re/picture/raw/master/img/20211102184211.png" loading="lazy"><br>jar包同样。<a href="https://s.threatbook.cn/">微步沙箱</a><h2 id="到此"><a href="#到此" class="headerlink" title="到此"></a>到此</h2>因为后面的问题，没有数据分析的地方了，所以就直接略过了。<br>学习出处：<a href="https://mp.weixin.qq.com/s/ZeFaS0cxIB3ZOnR2kSm7zw">潇湘信安</a></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 应急响应 </category>
+          
+          <category> 流量分析 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 应急响应 </tag>
+            
+            <tag> 流量分析 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>应急响应篇——权限维持</title>
       <link href="/posts/95384c9a/"/>
       <url>/posts/95384c9a/</url>
