@@ -1,0 +1,258 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="m0re"><meta name="copyright" content="m0re"><meta name="generator" content="Hexo 5.1.0"><meta name="theme" content="hexo-theme-yun"><title>【应急响应篇】——Windows系统排查 | m0re的小站</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.24/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_j5gk85dg4pf.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"><link rel="icon" href="/m0re.ico"><link rel="mask-icon" href="/m0re.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"hostname":"m0re.top","root":"/","title":"人生路漫漫","version":"1.6.1","mode":"time","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"搜索...","empty":"找不到您查询的内容: ${query}","hits":"找到 ${hits} 条结果","hits_time":"找到 ${hits} 条结果（用时 ${time} 毫秒）"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/utils.js"></script><script src="/js/hexo-theme-yun.js"></script><script>(function(){
+  var bp = document.createElement('script');
+  var curProtocol = window.location.protocol.split(':')[0];
+  if (curProtocol === 'https') {
+    bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+  }
+  else {
+    bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+  }
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(bp, s);
+})();</script><meta name="description" content="文章首发先知社区，原文地址——https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;10434">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【应急响应篇】——Windows系统排查">
+<meta property="og:url" content="https://m0re.top/posts/873290a1/index.html">
+<meta property="og:site_name" content="m0re的小站">
+<meta property="og:description" content="文章首发先知社区，原文地址——https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;10434">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/68.jpg">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211019195802393.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211019203937062.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211019205702866.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211019210821280.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211019211806801.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211020185931661.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211020190743849.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211020191959174.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211020191758379.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022145322968.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022151226390.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211020192626718.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022151520297.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022190454486.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022190712619.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022190901491.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022202912541.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022204728535.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211022204854673.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023101425828.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023102924106.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023103144393.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023104816425.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023105822357.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211023194519276.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211024105000252.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211024111003664.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211024111430044.png">
+<meta property="og:image" content="https://ios-data-recovery.com/wp-content/uploads/2019/08/chrome-history-file.jpg">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/image-20211024112110682.png">
+<meta property="article:published_time" content="2021-11-06T12:28:52.182Z">
+<meta property="article:modified_time" content="2021-11-06T12:28:28.224Z">
+<meta property="article:author" content="m0re">
+<meta property="article:tag" content="应急响应">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/m0re/picture/raw/master/img/68.jpg"><script src="/js/ui/mode.js"></script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="文章目录"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="站点概览"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info fix-top"><a class="site-author-avatar" href="/about/" title="m0re"><img width="96" loading="lazy" src="/images/avatar.jpg" alt="m0re"><span class="site-author-status" title="穷鬼啊啊啊啊">😭</span></a><div class="site-author-name"><a href="/about/">m0re</a></div><span class="site-name">m0re的小站</span><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="首页"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="归档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">118</span></a></div><div class="site-state-item"><a href="/categories/" title="分类"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">19</span></a></div><div class="site-state-item"><a href="/tags/" title="标签"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">50</span></a></div><a class="site-state-item hty-icon-button" href="/Tools/" title="Tools"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/zxcv0221" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/ISm0r3" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:m0re.lxj@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我的小伙伴们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Windows%E7%B3%BB%E7%BB%9F%E4%BA%8B%E4%BB%B6%E6%8E%92%E6%9F%A5"><span class="toc-number">1.</span> <span class="toc-text">Windows系统事件排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Windows%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E6%8E%92%E6%9F%A5"><span class="toc-number">2.</span> <span class="toc-text">Windows系统信息排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E7%8E%B0%E9%9A%90%E8%97%8F%E5%90%8E%E9%97%A8"><span class="toc-number">3.</span> <span class="toc-text">发现隐藏后门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Windows%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">Windows日志分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%97%A5%E5%BF%97"><span class="toc-number">4.1.</span> <span class="toc-text">系统日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E4%BB%B6ID"><span class="toc-number">4.2.</span> <span class="toc-text">事件ID</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%BF%A1%E6%81%AF%E8%AE%B0%E5%BD%95"><span class="toc-number">5.</span> <span class="toc-text">浏览器信息记录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E5%8F%82%E8%80%83%E5%86%85%E5%AE%B9"><span class="toc-number">6.1.</span> <span class="toc-text">学习参考内容</span></a></li></ol></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="https://m0re.top/posts/873290a1/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="m0re"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="m0re的小站"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">【应急响应篇】——Windows系统排查</h1><div class="post-meta"><div class="post-time" style="display:inline-block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">发表于</span> <time title="创建时间：2021-11-06 20:28:52" itemprop="dateCreated datePublished" datetime="2021-11-06T20:28:52+08:00">2021-11-06</time></div><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><span class="leancloud_visitors" id="/posts/873290a1/" data-flag-title="【应急响应篇】——Windows系统排查"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span class="leancloud-visitors-count"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">应急响应</span></a></span> > <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/Windows%E7%AF%87/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">Windows篇</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">应急响应</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><p><img src="https://gitee.com/m0re/picture/raw/master/img/68.jpg" loading="lazy"><br>文章首发先知社区，原文地址——<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10434">https://xz.aliyun.com/t/10434</a></p>
+<a id="more"></a>
+<h2 id="Windows系统事件排查"><a href="#Windows系统事件排查" class="headerlink" title="Windows系统事件排查"></a>Windows系统事件排查</h2><p>一般情况下，各种木马病毒等恶意程序都会在计算机开机启动过程中自行启动。</p>
+<p>在Windows系统中查看启动项，首先要排查的就是开机自启项。开始菜单里的程序中的自启</p>
+<pre class="language-none"><code class="language-none">C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup</code></pre>
+
+<p>查看应用程序中是否存在陌生的程序或者可疑程序(非机主自己安装)。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211019195802393.png" alt="image-20211019195802393" loading="lazy"></p>
+<p>启动项中，可疑文件名，</p>
+<p>可以通过<code>msconfig</code>查看启动项，win10系统的启动项转移到任务管理器中查看了</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211019203937062.png" alt="image-20211019203937062" loading="lazy"></p>
+<p>查看是否存在可疑项。</p>
+<p>查看缓存文件，C盘一般在<code>C:/Windows/Temp</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211019205702866.png" alt="image-20211019205702866" loading="lazy"></p>
+<p>这些都是Windows产生的临时文件，比如：WinRAR等压缩工具对压缩包进行解压的时候会先解压在临时文件夹中，然后从这个临时文件夹中移动到目标文件夹。</p>
+<p><code>Recent</code>系统文件夹，里面存放着最近使用的文档快捷方式，可以看到近期修改的文件以及修改日期。</p>
+<p>打开方式：WIN+R  -&gt; <code>%UserProfile%\Recent</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211019210821280.png" alt="image-20211019210821280" loading="lazy"></p>
+<p>也可以直接通过日期选项进行排查</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211019211806801.png" alt="image-20211019211806801" loading="lazy"></p>
+<p>再有就是查看文件的创建时间、修改时间、访问时间，黑客一般通过菜刀蚁剑类工具对文件做出修改，后面可以通过文件修改时间来判断该文件是否可疑。如果修改时间在创建时间之前，名显就是可疑文件了。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211020185931661.png" alt="image-20211020185931661" loading="lazy"></p>
+<p>接下来是注册表，在计算机中启动项分三种</p>
+<ol>
+<li>一般启动项内容项在<code>计算机\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</code></li>
+</ol>
+<p>用户设置的启动项，删除不影响系统运行，但是一般查看的时候重点查看这里，因为这里是<code>用户设置的</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211020190743849.png" alt="image-20211020190743849" loading="lazy"></p>
+<ol start="2">
+<li>另一个是系统设置的启动项，删除需谨慎，一般是第三方软件的驱动程序。</li>
+</ol>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211020191959174.png" alt="image-20211020191959174" loading="lazy"></p>
+<ol start="3">
+<li>第三个启动项是很重要的，不能随便删除，都则会影响正常操作系统的正常运行。<code>计算机\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run</code></li>
+</ol>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211020191758379.png" alt="image-20211020191758379" loading="lazy"></p>
+<p>入侵排查思路：</p>
+<ol>
+<li>弱口令修改</li>
+<li>第一时间禁掉发现的可以账号和新增账号，使用控制面版中的用户账户工具</li>
+</ol>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022145322968.png" alt="image-20211022145322968" loading="lazy"></p>
+<p>也可以看D盾_web来检测是否存在克隆账号或者隐藏账号</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022151226390.png" alt="image-20211022151226390" loading="lazy"></p>
+<ol start="3">
+<li>查看各个用户的登录时间和用户名是否异常</li>
+</ol>
+<h2 id="Windows系统信息排查"><a href="#Windows系统信息排查" class="headerlink" title="Windows系统信息排查"></a>Windows系统信息排查</h2><ol>
+<li>计划任务</li>
+</ol>
+<p>控制面板的管理工具中存在很多工具，其中就有任务计划程序</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211020192626718.png" alt="image-20211020192626718" loading="lazy"></p>
+<p>双击查看该程序会发现</p>
+<p>这里列有全部的计划任务，正在运行的和准备就绪的任务都可以查看。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022151520297.png" alt="image-20211022151520297" loading="lazy"></p>
+<p>计划任务排查一般是查看操作，操作中显示这个任务中哪个程序在执行，查看有无危险命令和未知的可疑软件。还有就是需要注意那些触发器是<code>当用户登录时</code>的任务。不熟悉的就给它禁掉。</p>
+<ol start="2">
+<li>异常端口和进程的排查</li>
+</ol>
+<p>在Windows系统中查看开放端口以及端口的连接情况，防止可疑连接。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022190454486.png" alt="image-20211022190454486" loading="lazy"></p>
+<p>901和903端口为不常见的开放端口，所以可以通过查看它的PID来进一步查询相对应的进程。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022190712619.png" alt="image-20211022190712619" loading="lazy"></p>
+<p>对应的VMware服务。</p>
+<p>查看进程列表的方法还有<code>msinfo32</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022190901491.png" alt="image-20211022190901491" loading="lazy"></p>
+<p>也可以通过D盾的web查杀工具，在工具中进行进程查看，重点关注一下没有签名信息的进程。</p>
+<h2 id="发现隐藏后门"><a href="#发现隐藏后门" class="headerlink" title="发现隐藏后门"></a>发现隐藏后门</h2><ol>
+<li>文件MD5校验</li>
+</ol>
+<p>在网上下载文件后，有些网站会在压缩包的注释处或者是下载页的明显位置放一段MD5校验值。为了防止用户需要时下载到被黑客恶意修改后的文件。</p>
+<p>在Windows系统中进行文件的md5值的计算用到<code>certutil</code>——一个命令行程序</p>
+<blockquote>
+<p>早期版本的 certutil 可能无法提供本文档中所述的所有选项。 可以通过运行 或 来查看特定版本的 certutil 提供 <code>certutil -?</code> 的所有选项 <code>certutil &lt;parameter&gt; -?</code> 。</p>
+</blockquote>
+<p>这是微软官方的帮助文档——<a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil">https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil</a></p>
+<p>一般使用<code>hashfile</code>参数来生成并显示文件上的加密函数</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022202912541.png" alt="image-20211022202912541" loading="lazy"></p>
+<ol start="2">
+<li>文件对比</li>
+</ol>
+<p>使用DVWA文件夹来做例子，手动给一个文件中加上一句话木马以及添加一个木马文件，测试一下</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022204728535.png" alt="image-20211022204728535" loading="lazy"></p>
+<p>双击异常文件，软件也可以得出具体是哪个片段的代码不同。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211022204854673.png" alt="image-20211022204854673" loading="lazy"></p>
+<h2 id="Windows日志分析"><a href="#Windows日志分析" class="headerlink" title="Windows日志分析"></a>Windows日志分析</h2><h3 id="系统日志"><a href="#系统日志" class="headerlink" title="系统日志"></a>系统日志</h3><p>默认存放路径</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">NT/Win2000/XP/Server <span class="token number">2003</span>
+C:<span class="token punctuation">\</span>WINDOWS<span class="token punctuation">\</span>system32<span class="token punctuation">\</span>config<span class="token punctuation">\</span>SysEvent.Evt
+Vista/Win7/Win8//Win10/Server <span class="token number">2008</span>/Server <span class="token number">2012</span>
+C:<span class="token punctuation">\</span>WINDOWS<span class="token punctuation">\</span>system32<span class="token punctuation">\</span>winevt<span class="token punctuation">\</span>Logs<span class="token punctuation">\</span>System.evtx</code></pre>
+
+<p>win10系统日志文件默认存放在<code>%SystemRoot%\System32\Winevt\Logs\</code>下，该文件夹下全是Windows的各种事件日志文件。记录操作系统组件产生的事件，主要包括驱动程序、系统组件和应用软件的崩溃以及数据。</p>
+<p>看日志之前要先了解一下Windows系统日志信息，Windows的日志文件本质上是数据库，其中包含的元素：日期时间，用户名，计算机名，事件ID，来源，类型，描述，数据等信息都相当于相应的字段。</p>
+<p>Windows事件日志有五种事件类型，所有的事件必须且只能拥有其中一种事件类型。</p>
+<ol>
+<li>信息(Information)</li>
+</ol>
+<p>信息事件指应用程序或服务的成功操作的事件，比如：登录成功，搜索服务等成功操作都会保留在信息事件的日志文件中。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023101425828.png" alt="image-20211023101425828" loading="lazy"></p>
+<ol start="2">
+<li>警告(Warning) </li>
+</ol>
+<p>警告事件指不是直接的、主要的，但是会导致将来问题发生的问题。例如，当磁盘空间不足或未找到打印机时，都会记录一个“警告”事件。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023102924106.png" alt="image-20211023102924106" loading="lazy"></p>
+<p>这里是数据库的格式问题报出一个警告事件。</p>
+<ol start="3">
+<li>错误(Error)</li>
+</ol>
+<p>错误事件指用户应该知道的重要的问题。错误事件通常指功能和数据的丢失。例如, 如果一个服务不能作为系统引导被加载，那么它会产生一个错误事件。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023103144393.png" alt="image-20211023103144393" loading="lazy"></p>
+<ol start="4">
+<li>成功审核(Success audit)</li>
+</ol>
+<p>成功的审核安全访问尝试，主要是指安全性日志，这里记录着用户登录/注销、对象访问、特权使用、账户管理、策略更改、详细跟踪、目录服务访问、账户登录等事件，例如所有的成功登录系统都会被记录为“成功审核”事件</p>
+<ol start="5">
+<li>失败审核</li>
+</ol>
+<p>失败的审核安全登录尝试，例如用户试图访问网络驱动器失败，则该尝试会被作为失败审核事件记录下来。</p>
+<h3 id="事件ID"><a href="#事件ID" class="headerlink" title="事件ID"></a>事件ID</h3><p>对于Windows事件日志分析，不同的事件ID代表着不同的意义，摘录一些常见的安全事件的说明，一个登录的行为都会给挂上事件ID，比如：登录成功，登录失败也有自己对应的事件ID</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023104816425.png" alt="image-20211023104816425" loading="lazy"></p>
+<p>其中还有一些其它的ID，比如4672(使用超级管理员进行登录)也叫做特权登录，通过win10自带的事件查看器可以很方便的看出任务类别为<code>Special Logon</code>的特权登录操作</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023105822357.png" alt="image-20211023105822357" loading="lazy"></p>
+<p>系统自带的事件查看器才是最好用的工具。自带筛选功能，可以根据事件ID或者事件类型，事件发生的时间范围，等字段来进行筛选并整理日志，返回更加方便查看的结果。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211023194519276.png" alt="image-20211023194519276" loading="lazy"></p>
+<p>这个是为了数据效果，在虚拟机中模拟多次登录失败而生成的日志。可以看到通过使用这里的筛选功能，根据时间，时间的级别，日志类型，事件来源，事件ID，任务类别，关键字，以及用户来筛选找出相应日志记录。</p>
+<p>成功登录的事件都会标记一个登录类型，不同登录类型代表不同的方式</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211024105000252.png" alt="image-20211024105000252" loading="lazy"></p>
+<h2 id="浏览器信息记录"><a href="#浏览器信息记录" class="headerlink" title="浏览器信息记录"></a>浏览器信息记录</h2><p>浏览器中的信息也是在应急响应中对黑客的攻击手段进行复现查看的一种方法，一般在浏览器中会保存浏览记录，下载记录，还有cookie信息等内容。</p>
+<p>浏览记录：可以查看黑客在拿到此台计算机后使用浏览器进行了哪些操作，很有可能使用浏览器去下载事先准备好的放在互联网上的后门木马或者勒索病毒等危险内容。以Google浏览器为例，在需要查看历史记录的时候使用<code>chrome://history/</code></p>
+<p>如果浏览器的历史记录已经被删除掉了，怎么查看，这里有几种常用的方法。</p>
+<ol>
+<li>如果电脑的谷歌浏览器是登录了账号的状态，在谷歌还未同步删除之前，可以在手机上进行查看浏览记录。</li>
+<li>还可以通过<a target="_blank" rel="noopener" href="https://myactivity.google.com/">Google活动</a>可以看到这里是查看到了我之前4月25日的访问记录。我认为这是比较方便的。</li>
+</ol>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211024111003664.png" alt="image-20211024111003664" loading="lazy"></p>
+<ol start="3">
+<li>恢复已删除 Chrome 来自Google外卖的备份文件的历史记录，可以查看近30天的历史记录活动。（需要自行备份，不合适应急响应中使用）</li>
+</ol>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211024111430044.png" alt="image-20211024111430044" loading="lazy"></p>
+<ol start="4">
+<li>使用数据恢复软件来恢复历史记录</li>
+</ol>
+<p>Chrome 生成文件以存储Windows或macOS上的浏览历史记录。 文件名是“ History”，看起来像 </p>
+<p><img src="https://ios-data-recovery.com/wp-content/uploads/2019/08/chrome-history-file.jpg" alt="Chrome 历史" loading="lazy"></p>
+<p>删除或清除历史记录后，文件将被删除， Chrome 之后，当您开始查看其他页面时，将生成一个新页面。</p>
+<p>使用<a target="_blank" rel="noopener" href="https://ios-data-recovery.com/download/data-recovery.exe">Data Recovery Do</a>安装在存储历史文件的磁盘以外的磁盘（D盘）</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/image-20211024112110682.png" alt="image-20211024112110682" loading="lazy"></p>
+<p>下载记录也是最重要的信息来源，可以看到黑客是否在互联网上下载了可疑文件或者程序。一般查杀使用D盾即够用。也可以使用在线恶意程序或文档检测工具。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>内容不多，但是耗费了一周时间来进行总结，意在为应急响应的学习开个好头，以便为后续的操作和学习打下一个坚实的基础吧。应急响应技术是针对黑客的攻击快速的做出解决方案去解决问题。这个过程是非常有趣的。</p>
+<h3 id="学习参考内容"><a href="#学习参考内容" class="headerlink" title="学习参考内容"></a>学习参考内容</h3><p><a target="_blank" rel="noopener" href="https://brownfly.gitbook.io/emergency-response/">https://brownfly.gitbook.io/emergency-response/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Bypass007/Emergency-Response-Notes">https://github.com/Bypass007/Emergency-Response-Notes</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/uz31415926/article/details/89444303">https://blog.csdn.net/uz31415926/article/details/89444303</a></p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="打赏" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">I'm so cute. Please give me a candy.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg"><img loading="lazy" src="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>本文作者：</strong>m0re</li><li class="post-copyright-link"><strong>本文链接：</strong><a href="https://m0re.top/posts/873290a1/" title="【应急响应篇】——Windows系统排查">https://m0re.top/posts/873290a1/</a></li><li class="post-copyright-license"><strong>版权声明：</strong>本博客所有文章除特别声明外，均默认采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> 许可协议。</li></ul></section></article><div class="post-nav"><div class="post-nav-item"></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/ac3b670b/" rel="next" title="【应急响应篇】——SSH暴力破解"><span class="post-nav-text">【应急响应篇】——SSH暴力破解</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"><div class="comment-tooltip text-center"><span>尝试使用 utterances （基于 GitHub Issues）评论系统。</span><br><span>您可以点击下方按钮切换对应评论系统，</span><br><span><script>function showUtterances(){ document.querySelector(".utterances").style.display='block'; document.querySelector('#valine-container').style.display='none'; }function showValine(){ document.querySelector('#valine-container').style.display='block'; document.querySelector(".utterances").style.display='none'; }</script></span><br><span><a class="hty-button hty-button--raised" onclick="showValine()">Valine</a><a class="hty-button hty-button--raised" onclick="showUtterances()">utterances</a></span><br><span><style>.utterances{display:none;}</style></span><br></div><div id="valine-container"></div><script>Yun.utils.getScript("https://cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js", () => {
+  const valineConfig = {"enable":true,"appId":"gUEA9zKLhCnMFxQI5kI20WiD-gzGzoHsz","appKey":"GQKAp04LNloy3MrDMv86MI3i","placeholder":"评论一下~&nbsp_(:з」∠)_ （填写邮箱可以收到回复通知～）","avatar":null,"pageSize":10,"visitor":true,"highlight":true,"recordIP":true,"enableQQ":true,"requiredFields":["nick","mail"],"el":"#valine-container","lang":"zh-cn"}
+  valineConfig.path = "/posts/873290a1/"
+  new Valine(valineConfig)
+}, window.Valine);</script></div></main><footer class="sidebar-translate" id="footer"><div class="beian"><a rel="noopener" href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2020025591号-1</a></div><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> m0re</span></div><div class="powered"><span>由 <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动 v5.1.0</span><span class="footer-separator">|</span><span>主题 - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.6.1</span></div><div class="live_time"><span>本博客已苟延残喘了</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-02-21T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div><div id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_uv" title="总访客量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="总访问量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="搜索"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="搜索..." value=""></div><div id="local-search-result"></div></div></div><script src="https://cdn.jsdelivr.net/npm/live2d-widget@^3.1.3/lib/L2Dwidget.min.js"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
