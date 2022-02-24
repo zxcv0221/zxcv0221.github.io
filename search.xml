@@ -4,31 +4,6 @@
   
     
     <entry>
-      <title>第一次面试小结</title>
-      <link href="/posts/7c2949d0/"/>
-      <url>/posts/7c2949d0/</url>
-      
-        <content type="html"><![CDATA[<p><img src="https://gitee.com/m0re/picture/raw/master/img/20220224211317.jpeg" loading="lazy"><br>一整个emo住了</p><a id="more"></a><h2 id="暴力破解"><a href="#暴力破解" class="headerlink" title="暴力破解"></a>暴力破解</h2><p>暴力破解分为两种，一种是针对性的密码爆破，一种是扩展性的密码喷洒。</p><p>密码爆破：一般是针对单个用户名或者账号使用密码字典来不断尝试，直到试出正确密码。</p><p>密码喷洒：密码喷洒与密码爆破相反，也可以叫做反向爆破。即用指定的一个密码来批量的试取用户，在信息搜集阶段获取了大量的账号信息或者系统的用户，然后以固定的一个密码去不断的尝试这些用户。</p><p>猜想：有些网站会限制密码输入错误的次数，可以尝试这种反向爆破。</p><h3 id="暴力破解怎么防护？"><a href="#暴力破解怎么防护？" class="headerlink" title="暴力破解怎么防护？"></a>暴力破解怎么防护？</h3><p>常见的就是加登录验证码，登录次数进行限制。</p><h4 id="关于验证码"><a href="#关于验证码" class="headerlink" title="关于验证码"></a>关于验证码</h4><ol><li><p>有的验证码仅作为本地验证，采用的JS，可以在本地禁用JS</p></li><li><p>有些网站默认不显示验证码，而是在输入错误一定数量之后才需要验证验证码，开发人员可能在<code>Cookie</code>中写入一个标记<code>loginErr</code>，用来记录错误数量，则可以不更新<code>Cookie</code>中的<code>loginErr</code>值反复提交，验证码就不会出现。</p></li><li><p>验证码不过期，没有及时销毁会话导致同一验证码反复可用。攻击者可以在Cookie中带固定的sessionID和固定的验证码字符串。</p></li><li><p>没有对验证码进行非空判断，导致可以直接删除验证码参数。</p></li></ol><p>验证码固定的情况下</p><blockquote><p>导致验证码不刷新（固定）的原因是：登录密码错误之后，session中的值没有更新，验证码不变。验证码不刷新通常有以下两种情况：无条件不刷新、有条件不刷新。</p></blockquote><ol><li>无条件不刷新是指在某一时间段内，无论登录失败多少次，只要不刷新页面，就可以无限次的使用同一个验证码来对一个或多个用户帐号进行暴力猜解。可以在获得第一个验证码后，后面不再主动触发验证码生成页面，并且一直使用第一个验证码就可循环进行后面的表单操作，从而绕过了验证码的屏障作用，对登录进行暴力猜解。</li><li>有条件不刷新多见于如下情况：登录失败之后，系统会打开一个新页面或者弹出一个新的警告窗口，提示用户登录失败，点击确定后返回登录界面且验证码刷新。这种情况下，只要我们不关闭新窗口或弹窗，配合使用Burpsuite的intruder模块就可以进行暴力破解了。</li></ol><h2 id="判断网站的开发语言"><a href="#判断网站的开发语言" class="headerlink" title="判断网站的开发语言"></a>判断网站的开发语言</h2><ol><li><p>网址后缀</p></li><li><p>插件wappalyzer：<a href="https://juejin.cn/post/6844904174228865031">https://juejin.cn/post/6844904174228865031</a></p><p><img src="https://gitee.com/m0re/picture/raw/master/img/20220224203420.png" loading="lazy"></p></li><li><p>SessionID来判断</p><ol><li><p>JSESSIONID–&gt;JSP</p></li><li><p>PSESSIONID–&gt;PHP</p><p><img src="https://gitee.com/m0re/picture/raw/master/img/20220224203653.png" loading="lazy"></p></li></ol></li><li><p>Google语法</p><pre class="language-bash" data-language="bash"><code class="language-bash">site:<span class="token operator">&lt;</span>domain<span class="token operator">></span>  filetype:<span class="token operator">&lt;</span>jsp/asp/php<span class="token operator">></span></code></pre><p><img src="https://gitee.com/m0re/picture/raw/master/img/20220224204030.png" loading="lazy"></p></li><li><p>在线网站</p><ul><li><a href="https://builtwith.com/">https://builtwith.com/</a></li><li><a href="https://w3techs.com/sites">https://w3techs.com/sites</a></li></ul></li><li><p>御剑扫描</p></li><li><p>SSRF服务器请求伪造反弹回来的信息</p></li></ol><h2 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>应用程序有时需要调用一些执行系统命令的函数，如在PHP中，使用<code>System()</code>、<code>exec()</code>、<code>shell_exec()</code>、<code>passthru()</code>、<code>popen()</code>、<code>proc_popen()</code>等函数可以执行系统命令。当攻击者可以控制这些函数中的参数时，就可以将恶意的系统命令拼接到正常命令中，从而造成命令执行攻击。</p><h3 id="防御"><a href="#防御" class="headerlink" title="防御"></a>防御</h3><p>1.尽量不要使用命令执行函数，尽量不要执行外部命令<br>2.使用自定义函数或者函数库来代替外部命令的功能<br>3.客户端提交的变量在进入执行命令函数钱要做好过滤和检测<br>4.在使用动态函数之前，确保使用的函数是指定的函数之一<br>5.对PHP语言来说，不能完全控制的危险函数最好不要使用</p><h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>其实第一次面试，全程在紧张，很紧张，脑袋空白，都是会的内容，面试官问的时候脑袋里什么都没有，哎，就当作一次很好的经历吧，就是可惜了这次的机会。另外还有其他的单独总结。</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> 面经 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> 面经 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>【代码审计】CMS系列——KKCMS</title>
       <link href="/posts/7c1c73bc/"/>
       <url>/posts/7c1c73bc/</url>
